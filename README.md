@@ -130,6 +130,9 @@ $ docker run \
 | IMPORT_PATH | Location of config files | `/config` |
 | IMPORT_FORCE | Enable force import of realm config | `false` |
 | IMPORT_CACHEKEY | Cache key for importing config. | `default` |
+| LOCK_ENABLED | Enable lock to avoid concurrency run | `false` |
+| LOCK_WAIT_TIMEOUT | Lock wait timeout | `300s` |
+| LOCK_TIMEOUT_REASON | Cache key for importing config. | `default` |
 
 
 ### Experimental native build

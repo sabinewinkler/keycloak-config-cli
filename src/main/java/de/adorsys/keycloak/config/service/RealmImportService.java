@@ -22,6 +22,7 @@ import de.adorsys.keycloak.config.model.RealmImport;
 import de.adorsys.keycloak.config.properties.ImportConfigProperties;
 import de.adorsys.keycloak.config.repository.RealmRepository;
 import de.adorsys.keycloak.config.service.checksum.ChecksumService;
+import de.adorsys.keycloak.config.service.lock.LockService;
 import de.adorsys.keycloak.config.util.CloneUtils;
 import org.keycloak.representations.idm.RealmRepresentation;
 import org.slf4j.Logger;
@@ -90,6 +91,7 @@ public class RealmImportService {
 
     private final ImportConfigProperties importProperties;
 
+    private final LockService lockService;
     private final ChecksumService checksumService;
 
     @Autowired
@@ -109,6 +111,7 @@ public class RealmImportService {
             CustomImportService customImportService,
             ScopeMappingImportService scopeMappingImportService,
             IdentityProviderImportService identityProviderImportService,
+            LockService lockService,
             ChecksumService checksumService
     ) {
         this.importProperties = importProperties;
@@ -126,22 +129,29 @@ public class RealmImportService {
         this.customImportService = customImportService;
         this.scopeMappingImportService = scopeMappingImportService;
         this.identityProviderImportService = identityProviderImportService;
+        this.lockService = lockService;
         this.checksumService = checksumService;
     }
 
     public void doImport(RealmImport realmImport) {
         boolean realmExists = realmRepository.exists(realmImport.getRealm());
 
-        if (realmExists) {
-            updateRealmIfNecessary(realmImport);
-        } else {
-            createRealm(realmImport);
+        try {
+            if (realmExists) {
+                updateRealmIfNecessary(realmImport);
+            } else {
+                createRealm(realmImport);
+            }
+        } finally {
+            lockService.releaseLock(realmImport);
         }
 
         keycloakProvider.close();
     }
 
     private void createRealm(RealmImport realmImport) {
+        lockService.getLock(realmImport);
+
         logger.debug("Creating realm '{}' ...", realmImport.getRealm());
 
         RealmRepresentation realmForCreation = CloneUtils.deepClone(realmImport, RealmRepresentation.class, ignoredPropertiesForCreation);
@@ -169,6 +179,8 @@ public class RealmImportService {
     }
 
     private void updateRealm(RealmImport realmImport) {
+        lockService.getLock(realmImport);
+
         logger.debug("Updating realm '{}'...", realmImport.getRealm());
 
         RealmRepresentation realmToUpdate = CloneUtils.deepClone(realmImport, RealmRepresentation.class, ignoredPropertiesForUpdate);

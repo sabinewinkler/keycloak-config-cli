@@ -53,7 +53,7 @@ import java.util.Map;
 )
 @ActiveProfiles("IT")
 @TestMethodOrder(OrderAnnotation.class)
-abstract class AbstractImportTest {
+abstract public class AbstractImportTest {
     @Container
     static final GenericContainer<?> KEYCLOAK_CONTAINER;
 
@@ -79,23 +79,23 @@ abstract class AbstractImportTest {
     }
 
     @Autowired
-    RealmImportService realmImportService;
+    public RealmImportService realmImportService;
 
     @Autowired
-    KeycloakImportProvider keycloakImportProvider;
+    public KeycloakImportProvider keycloakImportProvider;
 
     @Autowired
-    KeycloakProvider keycloakProvider;
+    public KeycloakProvider keycloakProvider;
 
     @Autowired
-    KeycloakRepository keycloakRepository;
+    public KeycloakRepository keycloakRepository;
 
     @Autowired
-    KeycloakAuthentication keycloakAuthentication;
+    public KeycloakAuthentication keycloakAuthentication;
 
-    KeycloakImport keycloakImport;
+    public KeycloakImport keycloakImport;
 
-    String resourcePath;
+    public String resourcePath;
 
     @BeforeEach
     public void setup() {
@@ -108,12 +108,12 @@ abstract class AbstractImportTest {
         keycloakProvider.close();
     }
 
-    void doImport(String realmImport) {
+    public void doImport(String realmImport) {
         RealmImport foundImport = getImport(realmImport);
         realmImportService.doImport(foundImport);
     }
 
-    RealmImport getImport(String importName) {
+    public RealmImport getImport(String importName) {
         Map<String, RealmImport> realmImports = keycloakImport.getRealmImports();
 
         return realmImports.entrySet()
